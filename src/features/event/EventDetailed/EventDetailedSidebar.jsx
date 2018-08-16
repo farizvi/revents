@@ -12,8 +12,8 @@ const EventDetailedSidebar = ({attendees}) => {
         secondary
         inverted
         color="teal"
-      >
-        {attendees && attendees.length} { attendees & attendees.length === 1 ? 'Person': 'People'} Going
+      >        
+        {attendees && attendees.length} {attendees && attendees.length === 1 ? 'Person' : 'People'} Going
       </Segment>
       <Segment attached>
         <List relaxed divided>
