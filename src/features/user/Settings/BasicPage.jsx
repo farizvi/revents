@@ -58,6 +58,13 @@ class BasicPage extends Component {
                         component={PlaceInput}
                         width={8}
                     />
+                    <Field
+                        width={8}
+                        name='occupation'
+                        type='text'
+                        component={TextInput}
+                        placeholder='Occupation'
+                    />
                     <Divider/>
                     <Button disabled={pristine || submitting} size='large' positive content='Update Profile'/>
                 </Form>

@@ -1,124 +1,103 @@
-import React, {Component} from 'react';
-import {Button, Card, Grid, Header, Icon, Image, Item, List, Menu, Segment} from "semantic-ui-react";
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { firestoreConnect, isEmpty } from 'react-redux-firebase';
+import { compose } from 'redux';
+import { Grid } from 'semantic-ui-react';
+import { toastr } from 'react-redux-toastr'
+import UserDetailedDescription from './UserDetailedDescription';
+import UserDetailedEvents from './UserDetailedEvents';
+import UserDetailedHeader from './UserDetailedHeader';
+import UserDetailedPhotos from './UserDetailedPhotos';
+import UserDetailedSidebar from './UserDetailedSidebar';
+import { userDetailedQuery } from '../userQueries';
+import LoadingComponent from '../../../app/layout/LoadingComponent';
+// import { getUserEvents, followUser, unfollowUser } from '../../user/userActions';
+
+const mapState = (state, ownProps) => {
+  let userUid = null;
+  let profile = {};
+
+  if (ownProps.match.params.id === state.auth.uid) {
+    profile = state.firebase.profile;
+  } else {
+    profile = !isEmpty(state.firestore.ordered.profile) && state.firestore.ordered.profile[0];
+    userUid = ownProps.match.params.id;
+  }
+
+  return {
+    profile,
+    userUid,
+    events: state.events,
+    eventsLoading: state.async.loading,
+    auth: state.firebase.auth,
+    photos: state.firestore.ordered.photos,
+    requesting: state.firestore.status.requesting,
+    following: state.firestore.ordered.following
+  };
+};
+
+// const actions = {
+//   getUserEvents,
+//   followUser,
+//   unfollowUser
+// };
 
 class UserDetailedPage extends Component {
-
-    render() {
-
-        return (
-            <Grid>
-                <Grid.Column width={16}>
-                    <Segment>
-                        <Item.Group>
-                            <Item>
-                                <Item.Image avatar size='small' src='https://randomuser.me/api/portraits/men/20.jpg'/>
-                                <Item.Content verticalAlign='bottom'>
-                                    <Header as='h1'>First Name</Header>
-                                    <br/>
-                                    <Header as='h3'>Occupation</Header>
-                                    <br/>
-                                    <Header as='h3'>27, Lives in London, UK</Header>
-                                </Item.Content>
-                            </Item>
-                        </Item.Group>
-
-                    </Segment>
-                </Grid.Column>
-                <Grid.Column width={12}>
-                    <Segment>
-                        <Grid columns={2}>
-                            <Grid.Column width={10}>
-                                <Header icon='smile' content='About Display Name'/>
-                                <p>I am a: <strong>Occupation Placeholder</strong></p>
-                                <p>Originally from <strong>United Kingdom</strong></p>
-                                <p>Member Since: <strong>28th March 2018</strong></p>
-                                <p>Description of user</p>
-
-                            </Grid.Column>
-                            <Grid.Column width={6}>
-
-                                <Header icon='heart outline' content='Interests'/>
-                                <List>
-                                    <Item>
-                                        <Icon name='heart'/>
-                                        <Item.Content>Interest 1</Item.Content>
-                                    </Item>
-                                    <Item>
-                                        <Icon name='heart'/>
-                                        <Item.Content>Interest 2</Item.Content>
-                                    </Item>
-                                    <Item>
-                                        <Icon name='heart'/>
-                                        <Item.Content>Interest 3</Item.Content>
-                                    </Item>
-                                </List>
-                            </Grid.Column>
-                        </Grid>
-
-                    </Segment>
-                </Grid.Column>
-                <Grid.Column width={4}>
-                    <Segment>
-                        <Button color='teal' fluid basic content='Edit Profile'/>
-                    </Segment>
-                </Grid.Column>
-
-                <Grid.Column width={12}>
-                    <Segment attached>
-                        <Header icon='image' content='Photos'/>
-                        
-                        <Image.Group size='small'>
-                            <Image src='https://randomuser.me/api/portraits/men/20.jpg'/>
-                            <Image src='https://randomuser.me/api/portraits/men/20.jpg'/>
-                            <Image src='https://randomuser.me/api/portraits/men/20.jpg'/>
-                            <Image src='https://randomuser.me/api/portraits/men/20.jpg'/>
-                        </Image.Group>
-                    </Segment>
-                </Grid.Column>
-
-                <Grid.Column width={12}>
-                    <Segment attached>
-                        <Header icon='calendar' content='Events'/>
-                        <Menu secondary pointing>
-                            <Menu.Item name='All Events' active/>
-                            <Menu.Item name='Past Events'/>
-                            <Menu.Item name='Future Events'/>
-                            <Menu.Item name='Events Hosted'/>
-                        </Menu>
-
-                        <Card.Group itemsPerRow={5}>
-
-                            <Card>
-                                <Image src={'/assets/categoryImages/drinks.jpg'}/>
-                                <Card.Content>
-                                    <Card.Header textAlign='center'>
-                                        Event Title
-                                    </Card.Header>
-                                    <Card.Meta textAlign='center'>
-                                        28th March 2018 at 10:00 PM
-                                    </Card.Meta>
-                                </Card.Content>
-                            </Card>
-
-                            <Card>
-                                <Image src={'/assets/categoryImages/drinks.jpg'}/>
-                                <Card.Content>
-                                    <Card.Header textAlign='center'>
-                                        Event Title
-                                    </Card.Header>
-                                    <Card.Meta textAlign='center'>
-                                        28th March 2018 at 10:00 PM
-                                    </Card.Meta>
-                                </Card.Content>
-                            </Card>
-
-                        </Card.Group>
-                    </Segment>
-                </Grid.Column>
-            </Grid>
-
-        );
+  async componentDidMount() {
+    let user = await this.props.firestore.get(`users/${this.props.match.params.id}`);
+    if (!user.exists) {
+      toastr.error('Not found', 'This is not the user you are looking for')
+      this.props.history.push('/error');
     }
+    // await this.props.getUserEvents(this.props.userUid);
+  }
+
+  // changeTab = (e, data) => {
+  //   this.props.getUserEvents(this.props.userUid, data.activeIndex);
+  // };
+
+  render() {
+    const {
+      profile,
+      photos,
+      auth,
+      match,
+      requesting,
+      events,
+      eventsLoading,
+      followUser,
+      following,
+      unfollowUser
+    } = this.props;
+    const isCurrentUser = auth.uid === match.params.id;
+    const loading = requesting[`users/${match.params.id}`];
+    const isFollowing = !isEmpty(following);
+
+    if (loading) return <LoadingComponent inverted={true} />;
+
+    return (
+      <Grid>
+        <UserDetailedHeader profile={profile} />
+        <UserDetailedDescription profile={profile} />
+        <UserDetailedSidebar
+          unfollowUser={unfollowUser}
+          isFollowing={isFollowing}
+          followUser={followUser}
+          profile={profile}
+          isCurrentUser={isCurrentUser}
+        />
+        {photos && photos.length > 0 && <UserDetailedPhotos photos={photos} />}
+        <UserDetailedEvents
+          events={events}
+          eventsLoading={eventsLoading}
+          changeTab={this.changeTab}
+        />
+      </Grid>
+    );
+  }
 }
 
-export default UserDetailedPage;
+export default compose(
+  connect(mapState, null),
+firestoreConnect((auth, userUid, match) => userDetailedQuery(auth, userUid, match))
+)(UserDetailedPage);
