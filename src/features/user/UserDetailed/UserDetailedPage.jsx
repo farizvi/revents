@@ -31,8 +31,8 @@ const mapState = (state, ownProps) => {
     eventsLoading: state.async.loading,
     auth: state.firebase.auth,
     photos: state.firestore.ordered.photos,
-    requesting: state.firestore.status.requesting,
-    following: state.firestore.ordered.following
+    requesting: state.firestore.status.requesting
+    // following: state.firestore.ordered.following
   };
 };
 
@@ -64,14 +64,11 @@ class UserDetailedPage extends Component {
       match,
       requesting,
       events,
-      eventsLoading,
-      followUser,
-      following,
-      unfollowUser
+      eventsLoading      
     } = this.props;
     const isCurrentUser = auth.uid === match.params.id;
     const loading = requesting[`users/${match.params.id}`];
-    const isFollowing = !isEmpty(following);
+    // const isFollowing = !isEmpty(following);
 
     if (loading) return <LoadingComponent inverted={true} />;
 
@@ -79,10 +76,7 @@ class UserDetailedPage extends Component {
       <Grid>
         <UserDetailedHeader profile={profile} />
         <UserDetailedDescription profile={profile} />
-        <UserDetailedSidebar
-          unfollowUser={unfollowUser}
-          isFollowing={isFollowing}
-          followUser={followUser}
+        <UserDetailedSidebar          
           profile={profile}
           isCurrentUser={isCurrentUser}
         />
@@ -99,5 +93,5 @@ class UserDetailedPage extends Component {
 
 export default compose(
   connect(mapState, null),
-firestoreConnect((auth, userUid, match) => userDetailedQuery(auth, userUid, match))
+firestoreConnect((auth, userUid) => userDetailedQuery(auth, userUid))
 )(UserDetailedPage);
