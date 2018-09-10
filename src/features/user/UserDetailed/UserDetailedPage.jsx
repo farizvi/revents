@@ -11,7 +11,7 @@ import UserDetailedPhotos from './UserDetailedPhotos';
 import UserDetailedSidebar from './UserDetailedSidebar';
 import { userDetailedQuery } from '../userQueries';
 import LoadingComponent from '../../../app/layout/LoadingComponent';
-// import { getUserEvents, followUser, unfollowUser } from '../../user/userActions';
+import { getUserEvents } from '../../user/userActions';
 
 const mapState = (state, ownProps) => {
   let userUid = null;
@@ -36,25 +36,25 @@ const mapState = (state, ownProps) => {
   };
 };
 
-// const actions = {
-//   getUserEvents,
-//   followUser,
-//   unfollowUser
-// };
+const actions = {
+  getUserEvents
+};
 
 class UserDetailedPage extends Component {
   async componentDidMount() {
-    let user = await this.props.firestore.get(`users/${this.props.match.params.id}`);
-    if (!user.exists) {
-      toastr.error('Not found', 'This is not the user you are looking for')
-      this.props.history.push('/error');
-    }
-    // await this.props.getUserEvents(this.props.userUid);
+    // let user = await this.props.firestore.get(`users/${this.props.match.params.id}`);
+    // if (!user.exists) {
+    //   toastr.error('Not found', 'This is not the user you are looking for')
+    //   this.props.history.push('/error');
+    // }
+    
+    let events = await this.props.getUserEvents(this.props.userUid);
+    console.log(events);
   }
 
-  // changeTab = (e, data) => {
-  //   this.props.getUserEvents(this.props.userUid, data.activeIndex);
-  // };
+  changeTab = (e, data) => {
+    this.props.getUserEvents(this.props.userUid, data.activeIndex);
+  };
 
   render() {
     const {
@@ -92,6 +92,6 @@ class UserDetailedPage extends Component {
 }
 
 export default compose(
-  connect(mapState, null),
+  connect(mapState, actions),
 firestoreConnect((auth, userUid) => userDetailedQuery(auth, userUid))
 )(UserDetailedPage);
