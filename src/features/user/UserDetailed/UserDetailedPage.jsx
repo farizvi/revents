@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { firestoreConnect, isEmpty } from 'react-redux-firebase';
 import { compose } from 'redux';
 import { Grid } from 'semantic-ui-react';
-import { toastr } from 'react-redux-toastr'
+// import { toastr } from 'react-redux-toastr'
 import UserDetailedDescription from './UserDetailedDescription';
 import UserDetailedEvents from './UserDetailedEvents';
 import UserDetailedHeader from './UserDetailedHeader';
