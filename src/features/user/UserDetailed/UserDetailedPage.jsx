@@ -11,7 +11,7 @@ import UserDetailedPhotos from './UserDetailedPhotos';
 import UserDetailedSidebar from './UserDetailedSidebar';
 import { userDetailedQuery } from '../userQueries';
 import LoadingComponent from '../../../app/layout/LoadingComponent';
-import { getUserEvents } from '../../user/userActions';
+import { getUserEvents, followUser, unfollowUser } from '../../user/userActions';
 
 const mapState = (state, ownProps) => {
   let userUid = null;
@@ -31,13 +31,15 @@ const mapState = (state, ownProps) => {
     eventsLoading: state.async.loading,
     auth: state.firebase.auth,
     photos: state.firestore.ordered.photos,
-    requesting: state.firestore.status.requesting
-    // following: state.firestore.ordered.following
+    requesting: state.firestore.status.requesting,
+    following: state.firestore.ordered.following
   };
 };
 
 const actions = {
-  getUserEvents
+  getUserEvents,
+  followUser,
+  unfollowUser
 };
 
 class UserDetailedPage extends Component {
@@ -64,11 +66,14 @@ class UserDetailedPage extends Component {
       match,
       requesting,
       events,
-      eventsLoading      
+      eventsLoading,
+      followUser,
+      following,
+      unfollowUser 
     } = this.props;
     const isCurrentUser = auth.uid === match.params.id;
     const loading = requesting[`users/${match.params.id}`];
-    // const isFollowing = !isEmpty(following);
+    const isFollowing = !isEmpty(following);
 
     if (loading) return <LoadingComponent inverted={true} />;
 
@@ -76,8 +81,11 @@ class UserDetailedPage extends Component {
       <Grid>
         <UserDetailedHeader profile={profile} />
         <UserDetailedDescription profile={profile} />
-        <UserDetailedSidebar          
+        <UserDetailedSidebar   
+          isFollowing={isFollowing}       
           profile={profile}
+          followUser={followUser}
+          unfollowUser={unfollowUser}
           isCurrentUser={isCurrentUser}
         />
         {photos && photos.length > 0 && <UserDetailedPhotos photos={photos} />}
@@ -93,5 +101,5 @@ class UserDetailedPage extends Component {
 
 export default compose(
   connect(mapState, actions),
-firestoreConnect((auth, userUid) => userDetailedQuery(auth, userUid))
+firestoreConnect((auth, userUid, match) => userDetailedQuery(auth, userUid, match))
 )(UserDetailedPage);
