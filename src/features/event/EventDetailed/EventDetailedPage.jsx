@@ -1,15 +1,19 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { withFirestore, firebaseConnect, isEmpty } from "react-redux-firebase";
-import { compose } from 'redux';
+import { compose } from "redux";
 import { Grid } from "semantic-ui-react";
 import EventDetailedHeader from "./EventDetailedHeader";
 import EventDetailedInfo from "./EventDetailedInfo";
 import EventDetailedChat from "./EventDetailedChat";
 import EventDetailedSidebar from "./EventDetailedSidebar";
-import { objectToArray, createDataTree } from '../../../app/common/util/helpers'
-import { goingToEvent, cancelGoingToEvent } from '../../user/userActions'
-import { addEventComment } from '../eventActions'
+import {
+  objectToArray,
+  createDataTree
+} from "../../../app/common/util/helpers";
+import { goingToEvent, cancelGoingToEvent } from "../../user/userActions";
+import { addEventComment } from "../eventActions";
+import { openModal } from "../../modals/modalActions";
 
 const mapState = (state, ownProps) => {
   let event = {};
@@ -22,58 +26,83 @@ const mapState = (state, ownProps) => {
     event,
     loading: state.async.loading,
     auth: state.firebase.auth,
-    eventChat: !isEmpty(state.firebase.data.event_chat) && 
-               objectToArray(state.firebase.data.event_chat[ownProps.match.params.id])
+    eventChat:
+      !isEmpty(state.firebase.data.event_chat) &&
+      objectToArray(state.firebase.data.event_chat[ownProps.match.params.id])
   };
 };
 
 const actions = {
   goingToEvent,
   cancelGoingToEvent,
-  addEventComment
-}
+  addEventComment,
+  openModal
+};
 
 class EventDetailedPage extends Component {
-  
   async componentDidMount() {
-    const {firestore, match} = this.props;
-    await firestore.setListener(`events/${match.params.id}`);    
+    const { firestore, match } = this.props;
+    await firestore.setListener(`events/${match.params.id}`);
   }
 
   async componentWillUnmount() {
-    const {firestore, match} = this.props;
+    const { firestore, match } = this.props;
     await firestore.unsetListener(`events/${match.params.id}`);
   }
 
   render() {
-    const { loading, event, auth, goingToEvent, cancelGoingToEvent, addEventComment, eventChat } = this.props;
-    const attendees = event && event.attendees && objectToArray(event.attendees);
+    const {
+      openModal,
+      loading,
+      event,
+      auth,
+      goingToEvent,
+      cancelGoingToEvent,
+      addEventComment,
+      eventChat
+    } = this.props;
+    const attendees =
+      event && event.attendees && objectToArray(event.attendees);
     const isHost = event.hostUid === auth.uid;
     const isGoing = attendees && attendees.some(a => a.id === auth.uid);
     const chatTree = !isEmpty(eventChat) && createDataTree(eventChat);
+    const authenticated = auth.isLoaded && !auth.isEmpty;
 
-    return <Grid>
+    return (
+      <Grid>
         <Grid.Column width={10}>
-          <EventDetailedHeader 
-            event={event} 
+          <EventDetailedHeader
+            event={event}
             loading={loading}
-            isHost={isHost} 
-            isGoing={isGoing} 
-            goingToEvent={goingToEvent} 
+            isHost={isHost}
+            isGoing={isGoing}
+            goingToEvent={goingToEvent}
             cancelGoingToEvent={cancelGoingToEvent}
+            authenticated={authenticated}
+            openModal={openModal}
           />
           <EventDetailedInfo event={event} />
-          <EventDetailedChat eventChat={chatTree} addEventComment={addEventComment} eventId={event.id} />
+          {authenticated && 
+            <EventDetailedChat
+              eventChat={chatTree}
+              addEventComment={addEventComment}
+              eventId={event.id}
+            />
+          }
         </Grid.Column>
         <Grid.Column width={6}>
           <EventDetailedSidebar attendees={attendees} />
         </Grid.Column>
-      </Grid>;
+      </Grid>
+    );
   }
 }
 
 export default compose(
-  withFirestore, 
-  connect(mapState, actions), 
-  firebaseConnect((props) => ([`event_chat/${props.match.params.id}`]))
+  withFirestore,
+  connect(
+    mapState,
+    actions
+  ),
+  firebaseConnect(props => [`event_chat/${props.match.params.id}`])
 )(EventDetailedPage);

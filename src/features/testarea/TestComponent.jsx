@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Button } from 'semantic-ui-react'
-import { incrementAsync, decrementAsync } from './testActions'
+import { incrementAsync, decrementAsync, testPermission } from './testActions'
 // import Script from 'react-load-script'
 import PlacesAutocomplete, { geocodeByAddress, getLatLng } from 'react-places-autocomplete'
 import { openModal } from '../modals/modalActions';
@@ -15,7 +15,8 @@ const mapState = (state) => ({
 const actions = {
   incrementAsync,
   decrementAsync,
-  openModal
+  openModal,
+  testPermission
 }
 
 
@@ -54,7 +55,7 @@ class TestComponent extends Component {
       onChange: this.onChange,
     }
 
-    const {incrementAsync, decrementAsync, data, openModal, loading} = this.props;
+    const {testPermission, incrementAsync, decrementAsync, data, openModal, loading} = this.props;
     return (
       <div>
         {/* <Script 
@@ -66,6 +67,7 @@ class TestComponent extends Component {
         <Button loading={loading} onClick={incrementAsync} color='green' content='Increment' />
         <Button loading={loading} onClick={decrementAsync} color='red' content='Decrement' />
         <Button onClick={() => openModal('TestModal', {data: 43})} color='teal' content='Open Modal' />
+        <Button onClick={testPermission} color='teal' content='Test Persmissions' />
         <br /><br />
         <form onSubmit={this.handleFormSubmit}>
           {this.state.scriptLoaded && 
